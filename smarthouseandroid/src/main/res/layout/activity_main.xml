@@ -5,19 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Switch
-        android:id="@+id/deviceSwitch"
+    <Button
+        android:id="@+id/addNewDeviceButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/add_new_device"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/infoTextView"
-        android:layout_above="@+id/deviceSwitch"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp" />
 </RelativeLayout>

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Smart House</string>
+    <string name="add_new_device">Add new device</string>
 </resources>
