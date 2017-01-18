@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
-import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -42,7 +41,7 @@ class SignInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         mFirebaseAuth = FirebaseAuth.getInstance()
         dbRef = FirebaseDatabase.getInstance().reference
 
-        Glide.with(this).load(R.drawable.sign_in_background).crossFade().into(backgroundImage)
+//        Glide.with(this).load(R.drawable.sign_in_background).crossFade().into(backgroundImage)
 
         signInButton.setOnClickListener { signIn() }
     }
