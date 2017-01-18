@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_sign_in"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/sign_in_background"
+        android:adjustViewBounds="true"
+        android:scaleType="centerCrop"/>
+
+    <Button
+        android:id="@+id/signInButton"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sign_in"
+        android:backgroundTint="@color/background_light"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="17dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/background_light"
+        android:text="Smart"
+        android:textSize="82dp"
+        android:fontFamily="sans-serif-light"
+        android:layout_marginTop="90dp"
+        android:id="@+id/textView"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/background_light"
+        android:text="House"
+        android:textSize="75dp"
+        android:textStyle="bold"
+        android:id="@+id/textView2"
+        android:layout_marginTop="67dp"
+        android:layout_alignTop="@+id/textView"
+        android:layout_alignStart="@+id/textView" />
+</RelativeLayout>

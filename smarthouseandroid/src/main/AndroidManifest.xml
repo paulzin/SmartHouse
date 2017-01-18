@@ -18,7 +18,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".BarcodeScannerActivity"></activity>
+        <activity android:name=".BarcodeScannerActivity" />
+        <activity android:name=".SignInActivity" />
     </application>
 
 </manifest>
