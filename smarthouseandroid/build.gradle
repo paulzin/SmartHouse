@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 buildscript {
-    ext.kotlin_version = '1.0.1-2'
+    ext.kotlin_version = '1.0.6'
     repositories {
         jcenter()
     }
@@ -46,24 +46,25 @@ dependencies {
     compile 'com.android.support:design:25.1.0'
 
     // Google
-    compile 'com.google.android.gms:play-services-auth:10.0.1'
+    compile 'com.google.android.gms:play-services-auth:9.8.0'
 
     // Firebase
     compile 'com.google.firebase:firebase-auth:9.8.0'
-    compile 'com.google.firebase:firebase-core:9.6.1'
-    compile 'com.google.firebase:firebase-database:9.6.1'
+    compile 'com.google.firebase:firebase-core:9.8.0'
+    compile 'com.google.firebase:firebase-database:9.8.0'
 
     compile 'me.dm7.barcodescanner:zxing:1.9'
     compile 'com.karumi:dexter:3.0.0'
+
+    compile 'com.github.bumptech.glide:glide:3.7.0'
 
     testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
+apply plugin: 'com.google.gms.google-services'
 
 repositories {
     mavenCentral()
 }
-
-apply plugin: 'com.google.gms.google-services'
 

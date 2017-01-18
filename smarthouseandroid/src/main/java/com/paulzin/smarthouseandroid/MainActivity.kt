@@ -11,6 +11,8 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import kotlinx.android.synthetic.main.activity_main.*
+
 
 class MainActivity : AppCompatActivity() {
     private val cameraPermission = "android.permission.CAMERA"
@@ -24,6 +26,7 @@ class MainActivity : AppCompatActivity() {
             openSignInActivity()
             return
         }
+        addNewDeviceButton.setOnClickListener { checkCameraPermission() }
     }
 
     private fun openSignInActivity() {

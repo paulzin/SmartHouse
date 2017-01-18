@@ -19,7 +19,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".BarcodeScannerActivity" />
-        <activity android:name=".SignInActivity" />
+        <activity
+            android:theme="@style/SignInTheme"
+            android:name=".SignInActivity" />
     </application>
 
 </manifest>
