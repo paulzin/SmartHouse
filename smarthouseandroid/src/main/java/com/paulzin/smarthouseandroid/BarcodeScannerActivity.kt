@@ -1,8 +1,8 @@
 package com.paulzin.smarthouseandroid
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import com.google.zxing.Result
 import me.dm7.barcodescanner.zxing.ZXingScannerView
 
@@ -29,9 +29,15 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
     }
 
     override fun handleResult(rawResult: Result) {
-        Log.d("SmartHouse", rawResult.text)
-        Log.d("SmartHouse", rawResult.barcodeFormat.toString())
-
         mScannerView?.resumeCameraPreview(this)
+
+        val intent = Intent()
+        intent.putExtra(EXTRA_DEVICE_ID, rawResult.text)
+        setResult(RESULT_OK, intent)
+        finish()
+    }
+
+    companion object {
+        val EXTRA_DEVICE_ID : String = "deviceIdExtra"
     }
 }

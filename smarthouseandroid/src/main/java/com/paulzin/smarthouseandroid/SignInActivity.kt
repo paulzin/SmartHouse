@@ -2,9 +2,9 @@ package com.paulzin.smarthouseandroid
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -13,8 +13,8 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.database.*
-import com.paulzin.smarthouseandroid.model.User
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_sign_in.*
 
 class SignInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
@@ -71,34 +71,11 @@ class SignInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
                 .addOnCompleteListener(this) { task ->
                     if (!task.isSuccessful) {
                         Log.w(TAG, "signInWithCredential", task.exception)
-                        Toast.makeText(this@SignInActivity, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show()
-                    } else {
-                        with(task.result.user) {
-                            createUserIfNotExist(uid, User(displayName!!))
-                        }
+                        Snackbar.make(signInButton, "Auth failed", Snackbar.LENGTH_LONG).show()
                     }
                 }
     }
 
-    private fun createUserIfNotExist(uid: String, user: User) {
-        val userRef = dbRef!!.child("users").child(uid)
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    userRef.setValue(user)
-                }
-                finish()
-                startActivity(Intent(this@SignInActivity, MainActivity::class.java))
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
-        })
-    }
-
     override fun onConnectionFailed(connectionResult: ConnectionResult) {
-
     }
 }

@@ -3,40 +3,32 @@ package com.paulzin.smarthouseandroid
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
-import com.bumptech.glide.Glide
-import com.firebase.ui.database.FirebaseRecyclerAdapter
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import com.paulzin.smarthouseandroid.adapter.DeviceAdapter
+import com.paulzin.smarthouseandroid.fb.FbManager
 import com.paulzin.smarthouseandroid.model.Device
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.item_device.view.*
-
-
 
 
 class MainActivity : AppCompatActivity() {
+    val REQUEST_SCAN_BARCODE = 1
     val cameraPermission = "android.permission.CAMERA"
-
-    val devicesRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("devices")
-    val useresRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("users")
-    val userDevicesRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("usersDevices")
-
-    var devicesAdapter: FirebaseRecyclerAdapter<Device, DevicesHolder>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,11 +42,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         addNewDeviceButton.setOnClickListener { tryToScanBarcode() }
-
-        devicesAdapter = DeviceAdapter(this)
+        fetchDevices()
 
         devicesRecyclerView.layoutManager = LinearLayoutManager(this)
-        devicesRecyclerView.adapter = devicesAdapter
+    }
+
+    private fun fetchDevices() {
+        FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).addValueEventListener(object: ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+
+            }
+
+            override fun onDataChange(devices: DataSnapshot?) {
+                val devicesList = devices?.children!!.map { it?.getValue(Device::class.java)!! }
+                val adapter = DeviceAdapter(devicesList,
+                        { deviceId, newValue -> toggleDevice(deviceId, newValue) })
+                devicesRecyclerView.adapter = adapter
+                emptyListLayout.visibility = if (devicesList.size === 0) VISIBLE else INVISIBLE
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -77,7 +83,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startBarcodeScanActivity() {
-        startActivity(Intent(this, BarcodeScannerActivity::class.java))
+        startActivityForResult(Intent(this, BarcodeScannerActivity::class.java), REQUEST_SCAN_BARCODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == REQUEST_SCAN_BARCODE) {
+                val deviceId = data?.getStringExtra(BarcodeScannerActivity.EXTRA_DEVICE_ID)
+                createNewDevice(deviceId)
+            }
+        }
+    }
+
+    private fun createNewDevice(deviceId: String?) {
+        if (deviceId.isNullOrEmpty()) return
+
+        val newDevice = Device()
+        newDevice.currentUid = FbManager.currentUser!!.uid
+        newDevice.deviceId = deviceId!!
+
+        FbManager.devicesRef.child(deviceId).setValue(newDevice)
+        FbManager.userDevicesRef.child(newDevice.currentUid).child(deviceId).setValue(newDevice)
+
+        Snackbar.make(toolbar, "Device id: " + deviceId, Snackbar.LENGTH_LONG).show()
     }
 
     private fun tryToScanBarcode() {
@@ -97,30 +125,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun toggleDevice(deviceId: String, newValue: Boolean) {
-        val device = devicesRef.child(deviceId)
+        val device = FbManager.devicesRef.child(deviceId)
+        val userDevice = FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).child(deviceId)
+
         device.child("turnedOn").setValue(newValue)
-    }
-
-    inner class DeviceAdapter(val activity : Activity) : FirebaseRecyclerAdapter<Device, DevicesHolder>(
-            Device::class.java, R.layout.item_device, DevicesHolder::class.java, userDevicesRef.child(FirebaseAuth.getInstance().currentUser?.uid)) {
-
-        public override fun populateViewHolder(deviceView: DevicesHolder, device: Device, position: Int) {
-            deviceView.bindDevice(device, activity)
-        }
-
-        override fun onDataChanged() {
-            emptyListLayout.visibility = if (itemCount === 0) VISIBLE else INVISIBLE
-        }
-    }
-
-    public class DevicesHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bindDevice(device: Device, activity: Activity) {
-            with(device) {
-                itemView.deviceName.text = name
-                itemView.deviceSwitch.isChecked = turnedOn
-                Glide.with(activity).load(imageUrl).into(itemView.deviceImageView)
-            }
-        }
+        userDevice.child("turnedOn").setValue(newValue)
     }
 
     private fun signOut() {
