@@ -72,9 +72,15 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.add_new_device -> tryToScanBarcode()
+            R.id.remove_devices -> removeDevices()
             R.id.sign_out -> signOut()
         }
         return true
+    }
+
+    private fun removeDevices() {
+        FbManager.userDevicesRef.removeValue()
+        FbManager.devicesRef.removeValue()
     }
 
     private fun openSignInActivity() {
@@ -102,10 +108,20 @@ class MainActivity : AppCompatActivity() {
         newDevice.currentUid = FbManager.currentUser!!.uid
         newDevice.deviceId = deviceId!!
 
-        FbManager.devicesRef.child(deviceId).setValue(newDevice)
-        FbManager.userDevicesRef.child(newDevice.currentUid).child(deviceId).setValue(newDevice)
+        FbManager.devicesRef.addListenerForSingleValueEvent(object: ValueEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+            }
 
-        Snackbar.make(toolbar, "Device id: " + deviceId, Snackbar.LENGTH_LONG).show()
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.hasChild(deviceId)) {
+                    Snackbar.make(toolbar, "Device with id $deviceId is already added", Snackbar.LENGTH_LONG).show()
+                } else {
+                    Snackbar.make(toolbar, "Device id: " + deviceId, Snackbar.LENGTH_LONG).show()
+                    FbManager.devicesRef.child(deviceId).setValue(newDevice)
+                    FbManager.userDevicesRef.child(newDevice.currentUid).child(deviceId).setValue(newDevice)
+                }
+            }
+        })
     }
 
     private fun tryToScanBarcode() {

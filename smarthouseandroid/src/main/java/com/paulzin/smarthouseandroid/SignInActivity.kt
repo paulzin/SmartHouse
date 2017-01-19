@@ -70,8 +70,11 @@ class SignInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         mFirebaseAuth!!.signInWithCredential(credential)
                 .addOnCompleteListener(this) { task ->
                     if (!task.isSuccessful) {
-                        Log.w(TAG, "signInWithCredential", task.exception)
+                        Log.e(TAG, "signInWithCredential", task.exception)
                         Snackbar.make(signInButton, "Auth failed", Snackbar.LENGTH_LONG).show()
+                    } else {
+                        startActivity(Intent(this@SignInActivity, MainActivity::class.java))
+                        finish()
                     }
                 }
     }

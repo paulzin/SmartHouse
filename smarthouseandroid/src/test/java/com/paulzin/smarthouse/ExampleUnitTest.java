@@ -1,4 +1,4 @@
-package com.paulzin.smarthouseandroid;
+package com.paulzin.smarthouse;
 
 import org.junit.Test;
 

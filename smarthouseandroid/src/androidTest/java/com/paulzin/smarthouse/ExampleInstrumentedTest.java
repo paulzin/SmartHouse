@@ -1,4 +1,4 @@
-package com.paulzin.smarthouseandroid;
+package com.paulzin.smarthouse;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
