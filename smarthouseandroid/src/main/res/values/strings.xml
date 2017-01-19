@@ -3,4 +3,5 @@
     <string name="add_new_device">Add new device</string>
     <string name="sign_in">Sign in</string>
     <string name="no_devices">You don\'t have any devices</string>
+    <string name="sign_out">Sign out</string>
 </resources>

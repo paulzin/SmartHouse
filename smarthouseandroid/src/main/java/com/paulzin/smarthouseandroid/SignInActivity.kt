@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
+import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -41,7 +42,7 @@ class SignInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
         mFirebaseAuth = FirebaseAuth.getInstance()
         dbRef = FirebaseDatabase.getInstance().reference
 
-//        Glide.with(this).load(R.drawable.sign_in_background).crossFade().into(backgroundImage)
+        Glide.with(this).load(R.drawable.sign_in_background).crossFade().into(backgroundImage)
 
         signInButton.setOnClickListener { signIn() }
     }
@@ -74,14 +75,14 @@ class SignInActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLi
                                 Toast.LENGTH_SHORT).show()
                     } else {
                         with(task.result.user) {
-                            createUserIfNotExist(User(uid, displayName!!))
+                            createUserIfNotExist(uid, User(displayName!!))
                         }
                     }
                 }
     }
 
-    private fun createUserIfNotExist(user: User) {
-        val userRef = dbRef!!.child("users").child(user.userId)
+    private fun createUserIfNotExist(uid: String, user: User) {
+        val userRef = dbRef!!.child("users").child(uid)
         userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (!dataSnapshot.exists()) {
