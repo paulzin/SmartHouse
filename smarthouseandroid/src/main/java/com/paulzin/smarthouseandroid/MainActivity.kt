@@ -11,6 +11,7 @@ import android.view.MenuItem
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -23,12 +24,15 @@ import com.karumi.dexter.listener.single.PermissionListener
 import com.paulzin.smarthouseandroid.adapter.DeviceAdapter
 import com.paulzin.smarthouseandroid.fb.FbManager
 import com.paulzin.smarthouseandroid.model.Device
+import com.paulzin.smarthouseandroid.model.User
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
     val REQUEST_SCAN_BARCODE = 1
     val cameraPermission = "android.permission.CAMERA"
+    var userDevicesMap : MutableMap<String, Device> = HashMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         addNewDeviceButton.setOnClickListener { tryToScanBarcode() }
         fetchDevices()
+        listenForDevicesUpdates()
 
         devicesRecyclerView.layoutManager = LinearLayoutManager(this)
     }
@@ -54,13 +59,62 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onDataChange(devices: DataSnapshot?) {
-                val devicesList = devices?.children!!.map { it?.getValue(Device::class.java)!! }
+                for (item in devices?.children!!) {
+                    userDevicesMap[item.key] = item.getValue(Device::class.java)
+                }
+
+                val devicesList = ArrayList(userDevicesMap.values)
                 val adapter = DeviceAdapter(devicesList,
                         { deviceId, newValue -> toggleDevice(deviceId, newValue) })
                 devicesRecyclerView.adapter = adapter
                 emptyListLayout.visibility = if (devicesList.size === 0) VISIBLE else INVISIBLE
             }
         })
+    }
+
+    private fun listenForDevicesUpdates() {
+        FbManager.devicesRef.addChildEventListener(object: ChildEventListener {
+            override fun onCancelled(p0: DatabaseError?) {
+            }
+
+            override fun onChildMoved(p0: DataSnapshot?, p1: String?) {
+            }
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot?, p1: String?) {
+                val device = dataSnapshot?.getValue(Device::class.java)!!
+                val uid = device.lastUserUid
+
+                if (FbManager.currentUser!!.uid == uid
+                        || !userDevicesMap.containsKey(dataSnapshot!!.key))
+                    return
+
+                FbManager.useresRef.child(uid).addListenerForSingleValueEvent(object: ValueEventListener {
+                    override fun onCancelled(p0: DatabaseError?) {
+                    }
+
+                    override fun onDataChange(data: DataSnapshot?) {
+                        val user = data?.getValue(User::class.java)
+                        Snackbar.make(toolbar,
+                                "${user?.name} just turned ${device.name} "
+                                        + if (device.turnedOn) "on" else "off",
+                                Snackbar.LENGTH_LONG).show()
+                    }
+                })
+
+                userDevicesMap[dataSnapshot!!.key] = device
+                updateUserDevice(dataSnapshot!!.key, device)
+            }
+
+            override fun onChildAdded(p0: DataSnapshot?, p1: String?) {
+            }
+
+            override fun onChildRemoved(p0: DataSnapshot?) {
+            }
+        })
+    }
+
+    private fun updateUserDevice(key: String?, device: Device) {
+        FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).child(key).setValue(device)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -80,7 +134,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun removeDevices() {
         FbManager.userDevicesRef.removeValue()
-        FbManager.devicesRef.removeValue()
     }
 
     private fun openSignInActivity() {
@@ -105,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         if (deviceId.isNullOrEmpty()) return
 
         val newDevice = Device()
-        newDevice.currentUid = FbManager.currentUser!!.uid
+        newDevice.lastUserUid = FbManager.currentUser!!.uid
         newDevice.deviceId = deviceId!!
 
         FbManager.devicesRef.addListenerForSingleValueEvent(object: ValueEventListener {
@@ -118,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     Snackbar.make(toolbar, "Device id: " + deviceId, Snackbar.LENGTH_LONG).show()
                     FbManager.devicesRef.child(deviceId).setValue(newDevice)
-                    FbManager.userDevicesRef.child(newDevice.currentUid).child(deviceId).setValue(newDevice)
+                    FbManager.userDevicesRef.child(newDevice.lastUserUid).child(deviceId).setValue(newDevice)
                 }
             }
         })
@@ -143,6 +196,9 @@ class MainActivity : AppCompatActivity() {
     fun toggleDevice(deviceId: String, newValue: Boolean) {
         val device = FbManager.devicesRef.child(deviceId)
         val userDevice = FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).child(deviceId)
+
+        device.child("lastUserUid").setValue(FbManager.currentUser.uid)
+        userDevice.child("lastUserUid").setValue(FbManager.currentUser.uid)
 
         device.child("turnedOn").setValue(newValue)
         userDevice.child("turnedOn").setValue(newValue)
