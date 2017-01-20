@@ -5,7 +5,7 @@ import com.google.firebase.database.FirebaseDatabase
 
 object FbManager {
     val devicesRef = FirebaseDatabase.getInstance().getReference("devices")
-    val useresRef = FirebaseDatabase.getInstance().getReference("users")
+    val usersRef = FirebaseDatabase.getInstance().getReference("users")
     val userDevicesRef = FirebaseDatabase.getInstance().getReference("userDevices")
     val currentUser = FirebaseAuth.getInstance().currentUser
 }

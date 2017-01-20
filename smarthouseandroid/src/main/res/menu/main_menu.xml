@@ -7,10 +7,6 @@
         android:id="@+id/add_new_device" />
 
     <item
-        android:title="@string/removeDevices"
-        android:id="@+id/remove_devices" />
-
-    <item
         android:title="@string/sign_out"
         android:id="@+id/sign_out" />
 </menu>

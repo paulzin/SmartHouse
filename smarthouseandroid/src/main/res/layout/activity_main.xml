@@ -21,12 +21,20 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/toolbar" />
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"/>
+
     <LinearLayout
         android:id="@+id/emptyListLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible"
         android:gravity="center">
 
         <TextView
