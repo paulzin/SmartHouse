@@ -19,4 +19,12 @@ object PiUtils {
 
         return raspberryPiSerial
     }
+
+    fun getIfconfig(): String {
+        val process = Runtime.getRuntime().exec("ifconfig")
+        val s = BufferedReader(InputStreamReader(process.inputStream)).use { it.readText() }
+
+        val raspberryPiSerial = s.substring(s.indexOf("inet addr")).substring(s.indexOf(":")).trim()
+        return raspberryPiSerial
+    }
 }
