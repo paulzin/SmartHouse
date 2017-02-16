@@ -33,11 +33,13 @@ class MainActivity : AppCompatActivity() {
     val REQUEST_SCAN_BARCODE = 1
     val cameraPermission = "android.permission.CAMERA"
     var userDevicesMap : MutableMap<String, Device> = HashMap()
+    val adapter = DeviceAdapter({deviceId, newValue -> FbManager.toggleDevice(deviceId, newValue)})
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        title = "Connected devices"
 
         val signedIn = FirebaseAuth.getInstance().currentUser != null
         if (!signedIn) {
@@ -49,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         fetchDevices()
         listenForDevicesUpdates()
 
+        devicesRecyclerView.adapter = adapter
         devicesRecyclerView.layoutManager = LinearLayoutManager(this)
     }
 
@@ -64,9 +67,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val devicesList = ArrayList(userDevicesMap.values)
-                val adapter = DeviceAdapter(devicesList,
-                        { deviceId, newValue -> toggleDevice(deviceId, newValue) })
-                devicesRecyclerView.adapter = adapter
+                adapter.setItems(devicesList)
                 emptyListLayout.visibility = if (devicesList.size === 0) VISIBLE else GONE
                 progressBar.visibility = GONE
             }
@@ -197,17 +198,6 @@ class MainActivity : AppCompatActivity() {
                     override fun onPermissionRationaleShouldBeShown(permission: PermissionRequest, token: PermissionToken) {
                     }
                 }).check()
-    }
-
-    fun toggleDevice(deviceId: String, newValue: Boolean) {
-        val device = FbManager.devicesRef.child(deviceId)
-        val userDevice = FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).child(deviceId)
-
-        device.child("lastUserUid").setValue(FbManager.currentUser.uid)
-        userDevice.child("lastUserUid").setValue(FbManager.currentUser.uid)
-
-        device.child("turnedOn").setValue(newValue)
-        userDevice.child("turnedOn").setValue(newValue)
     }
 
     private fun signOut() {
