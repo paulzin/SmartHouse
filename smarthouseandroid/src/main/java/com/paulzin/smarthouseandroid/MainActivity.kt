@@ -29,6 +29,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 
+
+
 class MainActivity : AppCompatActivity() {
     val REQUEST_SCAN_BARCODE = 1
     val cameraPermission = "android.permission.CAMERA"

@@ -24,7 +24,7 @@
             android:name=".SignInActivity" />
 
         <service
-            android:name=".QuickSettingsService"
+            android:name=".quick_settings.QuickSettingsService"
             android:icon="@drawable/ic_wb_incandescent_black_24dp"
             android:label="@string/tile_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
