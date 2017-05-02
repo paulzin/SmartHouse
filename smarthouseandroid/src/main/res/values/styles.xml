@@ -10,9 +10,8 @@
     </style>
 
     <style name="SignInTheme" parent="AppTheme">
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/colorAccent</item>
     </style>
 
     <style name="WhiteButton" parent="Base.TextAppearance.AppCompat.Button">

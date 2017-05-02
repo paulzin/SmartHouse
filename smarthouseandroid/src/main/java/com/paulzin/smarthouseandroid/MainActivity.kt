@@ -8,13 +8,8 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View.GONE
-import android.view.View.VISIBLE
+import android.view.View
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -22,103 +17,58 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.paulzin.smarthouseandroid.adapter.DeviceAdapter
-import com.paulzin.smarthouseandroid.fb.FbManager
+import com.paulzin.smarthouseandroid.fb.FbManager.createNewDevice
+import com.paulzin.smarthouseandroid.fb.FbManager.fetchDevices
+import com.paulzin.smarthouseandroid.fb.FbManager.isSignedIn
+import com.paulzin.smarthouseandroid.fb.FbManager.listenForDevicesUpdates
+import com.paulzin.smarthouseandroid.fb.FbManager.toggleDevice
+import com.paulzin.smarthouseandroid.fb.FetchDevicesListener
 import com.paulzin.smarthouseandroid.model.Device
-import com.paulzin.smarthouseandroid.model.User
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
-
-
 
 
 class MainActivity : AppCompatActivity() {
     val REQUEST_SCAN_BARCODE = 1
     val cameraPermission = "android.permission.CAMERA"
-    var userDevicesMap : MutableMap<String, Device> = HashMap()
-    val adapter = DeviceAdapter({deviceId, newValue -> FbManager.toggleDevice(deviceId, newValue)})
+    val adapter = DeviceAdapter(
+            { deviceId, newValue -> toggleDevice(deviceId, newValue) },
+            { device -> openDeviceDetailsActivity(device) }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-        title = "Connected devices"
+        setTitle(R.string.home_activity_title)
 
-        val signedIn = FirebaseAuth.getInstance().currentUser != null
-        if (!signedIn) {
+        initRecyclerView()
+
+        if (!isSignedIn()) {
             openSignInActivity()
             return
         }
 
         addNewDeviceButton.setOnClickListener { tryToScanBarcode() }
-        fetchDevices()
-        listenForDevicesUpdates()
 
+        fetchDevices(object: FetchDevicesListener {
+            override fun onCanceled() {
+                progressBar.visibility = View.GONE
+            }
+
+            override fun onDataChange(devicesList: ArrayList<Device>) {
+                adapter.setItems(devicesList)
+                emptyListLayout.visibility = if (devicesList.size == 0) View.VISIBLE else View.GONE
+                progressBar.visibility = View.GONE
+            }
+        })
+
+        listenForDevicesUpdates(toolbar)
+    }
+
+    private fun initRecyclerView() {
         devicesRecyclerView.adapter = adapter
         devicesRecyclerView.layoutManager = LinearLayoutManager(this)
-    }
-
-    private fun fetchDevices() {
-        FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).addValueEventListener(object: ValueEventListener {
-            override fun onCancelled(p0: DatabaseError?) {
-                progressBar.visibility = GONE
-            }
-
-            override fun onDataChange(devices: DataSnapshot?) {
-                for (item in devices?.children!!) {
-                    userDevicesMap[item.key] = item.getValue(Device::class.java)
-                }
-
-                val devicesList = ArrayList(userDevicesMap.values)
-                adapter.setItems(devicesList)
-                emptyListLayout.visibility = if (devicesList.size === 0) VISIBLE else GONE
-                progressBar.visibility = GONE
-            }
-        })
-    }
-
-    private fun listenForDevicesUpdates() {
-        FbManager.devicesRef.addChildEventListener(object: ChildEventListener {
-            override fun onCancelled(p0: DatabaseError?) {
-            }
-
-            override fun onChildMoved(p0: DataSnapshot?, p1: String?) {
-            }
-
-            override fun onChildChanged(dataSnapshot: DataSnapshot?, p1: String?) {
-                val device = dataSnapshot?.getValue(Device::class.java)!!
-                val uid = device.lastUserUid
-
-                if (FbManager.currentUser!!.uid == uid
-                        || !userDevicesMap.containsKey(dataSnapshot!!.key))
-                    return
-
-                FbManager.usersRef.child(uid).addListenerForSingleValueEvent(object: ValueEventListener {
-                    override fun onCancelled(p0: DatabaseError?) {
-                    }
-
-                    override fun onDataChange(data: DataSnapshot?) {
-                        val user = data?.getValue(User::class.java)
-                        Snackbar.make(toolbar,
-                                "${user?.name} just turned ${device.name} "
-                                        + if (device.turnedOn) "on" else "off",
-                                Snackbar.LENGTH_LONG).show()
-                    }
-                })
-
-                userDevicesMap[dataSnapshot!!.key] = device
-                updateUserDevice(dataSnapshot!!.key, device)
-            }
-
-            override fun onChildAdded(p0: DataSnapshot?, p1: String?) {
-            }
-
-            override fun onChildRemoved(p0: DataSnapshot?) {
-            }
-        })
-    }
-
-    private fun updateUserDevice(key: String?, device: Device) {
-        FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).child(key).setValue(device)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -140,6 +90,10 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun openDeviceDetailsActivity(device: Device) {
+        Snackbar.make(toolbar, device.name, Snackbar.LENGTH_SHORT).show()
+    }
+
     private fun startBarcodeScanActivity() {
         startActivityForResult(Intent(this, BarcodeScannerActivity::class.java), REQUEST_SCAN_BARCODE)
     }
@@ -148,42 +102,9 @@ class MainActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_SCAN_BARCODE) {
                 val deviceId = data?.getStringExtra(BarcodeScannerActivity.EXTRA_DEVICE_ID)
-                createNewDevice(deviceId)
+                createNewDevice(deviceId, toolbar)
             }
         }
-    }
-
-    private fun createNewDevice(deviceId: String?) {
-        if (deviceId.isNullOrEmpty()) return
-
-        val newDevice = Device()
-        newDevice.lastUserUid = FbManager.currentUser!!.uid
-        newDevice.deviceId = deviceId!!
-
-        FbManager.userDevicesRef.child(FbManager.currentUser!!.uid).addListenerForSingleValueEvent(object: ValueEventListener {
-            override fun onCancelled(p0: DatabaseError?) {
-            }
-
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.hasChild(deviceId)) {
-                    Snackbar.make(toolbar, "Duplicate: device with ID $deviceId already exists", Snackbar.LENGTH_LONG).show()
-                } else {
-                    FbManager.devicesRef.addListenerForSingleValueEvent(object: ValueEventListener {
-                        override fun onCancelled(p0: DatabaseError?) {
-                        }
-
-                        override fun onDataChange(data: DataSnapshot) {
-                            if (data.hasChild(deviceId)) {
-                                newDevice.turnedOn = data.getValue(Device::class.java).turnedOn
-                            }
-                            Snackbar.make(toolbar, "Added new device with ID: " + deviceId, Snackbar.LENGTH_LONG).show()
-                            FbManager.devicesRef.child(deviceId).setValue(newDevice)
-                            FbManager.userDevicesRef.child(newDevice.lastUserUid).child(deviceId).setValue(newDevice)
-                        }
-                    })
-                }
-            }
-        })
     }
 
     private fun tryToScanBarcode() {

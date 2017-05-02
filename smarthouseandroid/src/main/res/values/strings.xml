@@ -6,5 +6,6 @@
     <string name="sign_out">Sign out</string>
     <string name="removeDevices">Remove all devices</string>
     <string name="tile_label">Toggle lights</string>
+    <string name="home_activity_title">Connected devices</string>
     <string name="marketing_sign_in_message">Smart solution for the smart house.\n\nBuild the home of the Future: connect multiple smart devices and control them using this app.\n\nSign in to continue.</string>
 </resources>
