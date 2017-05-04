@@ -44,7 +44,8 @@ class MainActivity : AppCompatActivity() {
 
         initRecyclerView()
 
-        if (!isSignedIn()) {
+        if (!
+        isSignedIn()) {
             openSignInActivity()
             return
         }
