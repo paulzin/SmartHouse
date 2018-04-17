@@ -1,17 +1,17 @@
 package com.paulzin.smarthouse.hardware
 
 import com.google.android.things.pio.Gpio
-import com.google.android.things.pio.PeripheralManagerService
+import com.google.android.things.pio.PeripheralManager
 import timber.log.Timber
 import java.io.IOException
 
 
 object GpioManager {
     private val gpioName = "BCM20"
-    private val manager = PeripheralManagerService()
+    private val manager = PeripheralManager.getInstance()
     private var gpio : Gpio? = null
 
-    fun open(): Unit {
+    fun open() {
         try {
             gpio = manager.openGpio(gpioName)
             gpio?.setDirection(Gpio.DIRECTION_OUT_INITIALLY_HIGH)
@@ -21,7 +21,7 @@ object GpioManager {
         }
     }
 
-    fun close(): Unit {
+    fun close() {
         try {
             gpio?.close()
         } catch (e: IOException) {
@@ -30,7 +30,7 @@ object GpioManager {
         gpio = null
     }
 
-    fun setValue(value : Boolean): Unit {
+    fun setValue(value : Boolean) {
         gpio?.value = value
     }
 }

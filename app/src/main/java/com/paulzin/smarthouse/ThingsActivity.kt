@@ -7,7 +7,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.paulzin.smarthouse.hardware.GpioManager
-import com.paulzin.smarthouse.utils.PiUtils
 import com.paulzin.smarthouse.utils.PiUtils.getPiSerial
 import kotlinx.android.synthetic.main.activity_main.*
 import timber.log.Timber
@@ -18,7 +17,6 @@ class ThingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        ethernetTextView.text = PiUtils.getIfconfig()
 
         GpioManager.open()
 
@@ -28,7 +26,9 @@ class ThingsActivity : AppCompatActivity() {
             }
 
             override fun onDataChange(newStatus: DataSnapshot?) {
-                GpioManager.setValue(newStatus?.value as Boolean)
+                val deviceIsOn = newStatus?.value as Boolean
+                GpioManager.setValue(deviceIsOn)
+                stateTextView.text = if (deviceIsOn) "On" else "Off"
             }
         })
     }

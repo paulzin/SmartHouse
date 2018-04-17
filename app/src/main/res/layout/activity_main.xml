@@ -11,19 +11,11 @@
     tools:context="com.paulzin.smarthouse.ThingsActivity">
 
     <TextView
+        android:id="@+id/stateTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello GDG Ternopil :)"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/textView"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"/>
-
-    <TextView
-        android:id="@+id/ethernetTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ethernet"
-        android:layout_below="@id/textView"/>
+        android:layout_centerInParent="true"
+        style="@style/Base.TextAppearance.AppCompat.Display1"
+        tools:text="On"/>
 
 </RelativeLayout>

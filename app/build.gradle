@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 buildscript {
-    ext.kotlin_version = '1.0.6'
+    ext.kotlin_version = '1.2.31'
     repositories {
         jcenter()
     }
@@ -15,7 +15,7 @@ buildscript {
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "com.paulzin.smarthouse"
         minSdkVersion 21
@@ -45,7 +45,7 @@ dependencies {
     compile 'io.paperdb:paperdb:2.0'
     compile 'com.google.firebase:firebase-core:9.6.1'
     compile 'com.google.firebase:firebase-database:9.6.1'
-    provided 'com.google.android.things:androidthings:0.1-devpreview'
+    compileOnly 'com.google.android.things:androidthings:+'
     testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
